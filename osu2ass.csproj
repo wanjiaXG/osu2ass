@@ -52,6 +52,24 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GosuLogForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GosuLogForm.Designer.cs">
+      <DependentUpon>GosuLogForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="StyleForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="StyleForm.Designer.cs">
+      <DependentUpon>StyleForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CharForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CharForm.Designer.cs">
+      <DependentUpon>CharForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="GosumemoryData.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -62,6 +80,15 @@
     <Compile Include="Ini.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="GosuLogForm.resx">
+      <DependentUpon>GosuLogForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="StyleForm.resx">
+      <DependentUpon>StyleForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CharForm.resx">
+      <DependentUpon>CharForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>

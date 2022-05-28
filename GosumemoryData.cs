@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace osu2ass
 {
+    /// <summary>
+    /// Gosumemory的Json实体类
+    /// </summary>
     public class GosumemoryData
     {
         public Settings settings { get; set; }
