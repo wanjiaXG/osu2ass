@@ -331,7 +331,6 @@ namespace osu2ass
             this.groupBox2.Controls.Add(this.HeightTB);
             this.groupBox2.Controls.Add(this.WidthTB);
             this.groupBox2.Controls.Add(this.label2);
-            this.groupBox2.Enabled = false;
             this.groupBox2.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.groupBox2.Location = new System.Drawing.Point(245, 99);
             this.groupBox2.Name = "groupBox2";
@@ -357,6 +356,7 @@ namespace osu2ass
             this.HeightTB.Name = "HeightTB";
             this.HeightTB.Size = new System.Drawing.Size(63, 26);
             this.HeightTB.TabIndex = 20;
+            this.HeightTB.Text = "1080";
             // 
             // WidthTB
             // 
@@ -365,6 +365,7 @@ namespace osu2ass
             this.WidthTB.Name = "WidthTB";
             this.WidthTB.Size = new System.Drawing.Size(63, 26);
             this.WidthTB.TabIndex = 18;
+            this.WidthTB.Text = "1920";
             // 
             // label2
             // 
@@ -385,7 +386,6 @@ namespace osu2ass
             this.UseBackgroundRBtn.TabIndex = 16;
             this.UseBackgroundRBtn.Text = "使用纯色背景";
             this.UseBackgroundRBtn.UseVisualStyleBackColor = true;
-            this.UseBackgroundRBtn.CheckedChanged += new System.EventHandler(this.UseBackgroundRBtn_CheckedChanged);
             // 
             // MediaBrowserBtn
             // 

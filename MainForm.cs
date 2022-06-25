@@ -163,10 +163,24 @@ namespace osu2ass
         {
             try
             {
+                int width = 0;
+                int height = 0;
                 if (string.IsNullOrWhiteSpace(AssPathTB.Text))
                 {
                     throw new Exception("未选择ass保存路径");
                 }
+
+                if (int.TryParse(WidthTB.Text, out int w) && int.TryParse(HeightTB.Text, out int h))
+                {
+                    width = w;
+                    height = h;
+                }
+                else
+                {
+                    throw new Exception("画布宽度值必须是整数值");
+                }
+
+
                 int GlobalStartOffset = 0;
                 int GlobalEndOffset = 0;
 
@@ -213,7 +227,11 @@ namespace osu2ass
 
                 StringBuilder ass = new StringBuilder();
                 ass.Append("[Script Info]\r\n");
-                
+                ass.Append($"PlayResX: {width}\r\n");
+                ass.Append($"PlayResY: {height}\r\n");
+
+
+
                 ass.Append("\r\n[Aegisub Project Garbage]\r\n");
 
                 if (!string.IsNullOrWhiteSpace(MediaNameTB.Text))
@@ -223,26 +241,6 @@ namespace osu2ass
 
                 if (UseBackgroundRBtn.Checked)
                 {
-                    int width = 0;
-                    int height = 0;
-
-                    if (int.TryParse(WidthTB.Text, out int w))
-                    {
-                        width = w;
-                    }
-                    else
-                    {
-                        throw new Exception("画布宽度值必须是整数值");
-                    }
-
-                    if (int.TryParse(HeightTB.Text, out int h))
-                    {
-                        height = h;
-                    }
-                    else
-                    {
-                        throw new Exception("画布长度值必须是整数值");
-                    }
                     ass.Append($"Video File: ?dummy:30:40000:{width}:{height}:0:0:0:\r\n");
                 }
                 else if (!string.IsNullOrWhiteSpace(MediaNameTB.Text))
@@ -504,11 +502,6 @@ namespace osu2ass
             {
                 MediaNameTB.Text = new FileInfo(dialog.FileName).Name;
             }
-        }
-
-        private void UseBackgroundRBtn_CheckedChanged(object sender, EventArgs e)
-        {
-            groupBox2.Enabled = UseBackgroundRBtn.Enabled;
         }
 
         private void StyleCodeBtn_Click(object sender, EventArgs e)
