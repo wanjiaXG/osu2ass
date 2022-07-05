@@ -16,7 +16,7 @@ namespace osu2ass
     public partial class MainForm : Form
     {
 
-        private WebSocket webSocket;
+        private WebSocket wsClient;
 
         private readonly SynchronizationContext Context;
 
@@ -111,20 +111,22 @@ namespace osu2ass
 
             //Connect to gosumemory
             
-            webSocket = new WebSocket(server);
-            webSocket.Log.File = null;
-            webSocket.OnMessage += OnMessage;
-            webSocket.OnClose += OnClose;
-            webSocket.Connect();
-
+            wsClient = new WebSocket(server);
+            wsClient.Log.File = null;
+            wsClient.OnMessage += OnMessage;
+            wsClient.OnClose += OnClose;
+            wsClient.Connect();
         }
 
         private void OnClose(object sender, CloseEventArgs e)
         {
             Context.Post((s) => { gosuStatusLB.ForeColor = Color.Red ; gosuStatusLB.Text = "gosu未启动";  }, null );
             //ReConnect to gosumemory
-            Thread.Sleep(1000);
-            webSocket.Connect();
+            if (!IsDisposed)
+            {
+                Thread.Sleep(1000);
+                wsClient.Connect();
+            }
         }
 
         private GosumemoryData gosumemoryData;
@@ -154,13 +156,19 @@ namespace osu2ass
             new Thread(RunGosu).Start();
         }
 
-        private void SaveBtn_Click(object sender, EventArgs e)
-        {
-            
-        }
-
         private void ConvertBtn_Click(object sender, EventArgs e)
         {
+
+/*            string[] color = { "{\\c&cec74c&}",
+                            "{\\c&FFFFFF&}",
+                            "{\\c&6cedea&}",
+                            "{\\c&FFFFFF&}",
+                            "{\\c&456ee0&}",
+                            "{\\c&FFFFFF&}",
+                            "{\\c&6cedea&}",
+                            "{\\c&FFFFFF&}" };
+            int cindex = 0;*/
+
             try
             {
                 int width = 0;
@@ -273,15 +281,58 @@ namespace osu2ass
                     {
                         index++;
                         if (index >= offsets.Count) break;
-                        content.Append("{\\kf" + (offsets[index] - CurrentOffset) / 10 + "}").Append(c);
+                        content.Append("{\\kf" + (offsets[index] - CurrentOffset) / 10 + "}");
+
+                        content.Append(c);
+/*
+                        bool f = true;
+                        foreach(var cc in c.ToString().Trim().ToCharArray())
+                        {
+                            if(cc > 256)
+                            {
+                                f = false;
+                            }
+                        }
+                        if (f)
+                        {
+                            content.Append(color[cindex])
+                            .Append(c);
+                            cindex++;
+                            if (cindex >= color.Length)
+                            {
+                                cindex = 0;
+                            }
+                        }
+                        else
+                        {
+
+                            foreach (var cc in c.ToString().ToCharArray())
+                            {
+                                if (string.IsNullOrWhiteSpace(cc.ToString()))
+                                {
+                                    continue;
+                                }
+                                content.Append(color[cindex])
+                                .Append(cc);
+                                cindex++;
+                                if (cindex >= color.Length)
+                                {
+                                    cindex = 0;
+                                }
+                            }
+                        }*/
+
+
+
+
                         CurrentOffset = offsets[index];
                     }
 
                     if (!string.IsNullOrWhiteSpace(content.ToString()))
                     {
                         ass.Append("Dialogue: 0,");
-                        ass.Append(GetAssTime(StartOffset + GlobalStartOffset) + ",");
-                        ass.Append(GetAssTime(CurrentOffset + GlobalStartOffset) + $",{StyleBox.Text},,0,0,0,,");
+                        ass.Append(Offset2AssTime(StartOffset + GlobalStartOffset) + ",");
+                        ass.Append(Offset2AssTime(CurrentOffset + GlobalStartOffset) + $",{StyleBox.Text},,0,0,0,,");
                         ass.Append(content);
                         ass.Append("\r\n");
                     }
@@ -304,11 +355,11 @@ namespace osu2ass
 
                 StringBuilder sb = new StringBuilder();
 
-                foreach (var l in lrcs)
+                foreach (var line in lrcs)
                 {
-                    foreach (var i in l)
+                    foreach (var c in line)
                     {
-                        sb.Append(i).Append("|");
+                        sb.Append(c).Append("|");
                     }
                     sb.Remove(sb.Length - 1, 1);
                     sb.Append("\r\n");
@@ -418,7 +469,7 @@ namespace osu2ass
             return CharList.Contains(c);
         }
 
-        private string GetAssTime(int offset)
+        private string Offset2AssTime(int offset)
         {
             int tmp = offset;
             int ms = tmp % 1000;
@@ -433,15 +484,6 @@ namespace osu2ass
             return $"{h:D2}:{m:D2}:{s:D2}.{ms / 10:D2}";
         }
 
-
-        [DllImport("kernel32.dll")]
-        static extern bool GenerateConsoleCtrlEvent(int dwCtrlEvent, int dwProcessGroupId);
-
-        [DllImport("kernel32.dll")]
-        static extern bool SetConsoleCtrlHandler(IntPtr handlerRoutine, bool add);
-
-        [DllImport("kernel32.dll")]
-        static extern bool AttachConsole(int dwProcessId);
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
