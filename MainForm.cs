@@ -514,15 +514,18 @@ namespace osu2ass
                 {
                     StyleCode = File.ReadAllText(StyleForm.StylePath);
                 }
-                else
-                {
-                    StyleCode = DefaultStyleCode;
-                }
             }
             catch(Exception ex)
             {
                 MessageBox.Show(ex.Message);
-                StyleCode = DefaultStyleCode;
+                
+            }
+            finally
+            {
+                if (string.IsNullOrWhiteSpace(StyleCode))
+                {
+                    StyleCode = DefaultStyleCode;
+                }
             }
 
             StyleBox.Items.Clear();
@@ -543,7 +546,7 @@ namespace osu2ass
                 }
             }
 
-            if(StyleBox.Items.Count > 0)
+            if(StyleBox.Items.Count >0)
             {
                 StyleBox.SelectedIndex = 0;
             }
