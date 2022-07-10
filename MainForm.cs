@@ -215,6 +215,8 @@ namespace osu2ass
                     }
                 }
 
+                
+
                 #endregion
 
                 StringBuilder ass = new StringBuilder();
@@ -289,6 +291,11 @@ namespace osu2ass
                 }
 
                 AssTB.Text = ass.ToString();
+                if (AssPathTB.Text.Equals(MediaNameTB.Text) || !AssPathTB.Text.ToLower().EndsWith(".ass"))
+                {
+                    AssPathTB.Text = AssPathTB.Text + ".ass";
+                }
+
                 File.WriteAllText(AssPathTB.Text, AssTB.Text);
             }
             catch(Exception ex)
@@ -536,7 +543,10 @@ namespace osu2ass
                 }
             }
 
-            StyleBox.SelectedIndex = 0;
+            if(StyleBox.Items.Count > 0)
+            {
+                StyleBox.SelectedIndex = 0;
+            }
         }
 
         private void GosuLogBtn_Click(object sender, EventArgs e)
