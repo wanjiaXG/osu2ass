@@ -45,6 +45,9 @@ namespace osu2ass
             this.CharBtn = new System.Windows.Forms.Button();
             this.splitter3 = new System.Windows.Forms.Splitter();
             this.panel4 = new System.Windows.Forms.Panel();
+            this.label12 = new System.Windows.Forms.Label();
+            this.SpeedTB = new System.Windows.Forms.TextBox();
+            this.SpeedLB = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
             this.StyleBox = new System.Windows.Forms.ComboBox();
             this.StyleCodeBtn = new System.Windows.Forms.Button();
@@ -53,7 +56,7 @@ namespace osu2ass
             this.HeightTB = new System.Windows.Forms.TextBox();
             this.WidthTB = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.UseBackgroundRBtn = new System.Windows.Forms.CheckBox();
+            this.UseBackgroundBtn = new System.Windows.Forms.CheckBox();
             this.MediaBrowserBtn = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.MediaNameTB = new System.Windows.Forms.TextBox();
@@ -271,11 +274,14 @@ namespace osu2ass
             // panel4
             // 
             this.panel4.AllowDrop = true;
+            this.panel4.Controls.Add(this.label12);
+            this.panel4.Controls.Add(this.SpeedTB);
+            this.panel4.Controls.Add(this.SpeedLB);
             this.panel4.Controls.Add(this.label11);
             this.panel4.Controls.Add(this.StyleBox);
             this.panel4.Controls.Add(this.StyleCodeBtn);
             this.panel4.Controls.Add(this.groupBox2);
-            this.panel4.Controls.Add(this.UseBackgroundRBtn);
+            this.panel4.Controls.Add(this.UseBackgroundBtn);
             this.panel4.Controls.Add(this.CharBtn);
             this.panel4.Controls.Add(this.MediaBrowserBtn);
             this.panel4.Controls.Add(this.label1);
@@ -290,10 +296,40 @@ namespace osu2ass
             this.panel4.Size = new System.Drawing.Size(593, 249);
             this.panel4.TabIndex = 9;
             // 
+            // label12
+            // 
+            this.label12.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.label12.Location = new System.Drawing.Point(556, 165);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(25, 33);
+            this.label12.TabIndex = 27;
+            this.label12.Text = "X";
+            this.label12.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // SpeedTB
+            // 
+            this.SpeedTB.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.SpeedTB.Location = new System.Drawing.Point(458, 168);
+            this.SpeedTB.Name = "SpeedTB";
+            this.SpeedTB.Size = new System.Drawing.Size(92, 26);
+            this.SpeedTB.TabIndex = 26;
+            this.SpeedTB.Text = "1";
+            this.SpeedTB.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // SpeedLB
+            // 
+            this.SpeedLB.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.SpeedLB.Location = new System.Drawing.Point(374, 163);
+            this.SpeedLB.Name = "SpeedLB";
+            this.SpeedLB.Size = new System.Drawing.Size(78, 33);
+            this.SpeedLB.TabIndex = 25;
+            this.SpeedLB.Text = "字幕速度";
+            this.SpeedLB.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // label11
             // 
             this.label11.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label11.Location = new System.Drawing.Point(374, 150);
+            this.label11.Location = new System.Drawing.Point(374, 130);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(78, 33);
             this.label11.TabIndex = 24;
@@ -307,7 +343,7 @@ namespace osu2ass
             this.StyleBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.StyleBox.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.StyleBox.FormattingEnabled = true;
-            this.StyleBox.Location = new System.Drawing.Point(458, 154);
+            this.StyleBox.Location = new System.Drawing.Point(458, 134);
             this.StyleBox.Name = "StyleBox";
             this.StyleBox.Size = new System.Drawing.Size(123, 24);
             this.StyleBox.TabIndex = 23;
@@ -317,11 +353,11 @@ namespace osu2ass
             this.StyleCodeBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.StyleCodeBtn.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.StyleCodeBtn.Location = new System.Drawing.Point(368, 106);
+            this.StyleCodeBtn.Location = new System.Drawing.Point(368, 89);
             this.StyleCodeBtn.Name = "StyleCodeBtn";
             this.StyleCodeBtn.Size = new System.Drawing.Size(213, 32);
             this.StyleCodeBtn.TabIndex = 22;
-            this.StyleCodeBtn.Text = "默认Style代码";
+            this.StyleCodeBtn.Text = "Style代码";
             this.StyleCodeBtn.UseVisualStyleBackColor = true;
             this.StyleCodeBtn.Click += new System.EventHandler(this.StyleCodeBtn_Click);
             // 
@@ -377,15 +413,15 @@ namespace osu2ass
             this.label2.Text = "宽";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // UseBackgroundRBtn
+            // UseBackgroundBtn
             // 
-            this.UseBackgroundRBtn.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.UseBackgroundRBtn.Location = new System.Drawing.Point(245, 76);
-            this.UseBackgroundRBtn.Name = "UseBackgroundRBtn";
-            this.UseBackgroundRBtn.Size = new System.Drawing.Size(129, 24);
-            this.UseBackgroundRBtn.TabIndex = 16;
-            this.UseBackgroundRBtn.Text = "使用纯色背景";
-            this.UseBackgroundRBtn.UseVisualStyleBackColor = true;
+            this.UseBackgroundBtn.Font = new System.Drawing.Font("黑体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.UseBackgroundBtn.Location = new System.Drawing.Point(245, 76);
+            this.UseBackgroundBtn.Name = "UseBackgroundBtn";
+            this.UseBackgroundBtn.Size = new System.Drawing.Size(129, 24);
+            this.UseBackgroundBtn.TabIndex = 16;
+            this.UseBackgroundBtn.Text = "使用纯色背景";
+            this.UseBackgroundBtn.UseVisualStyleBackColor = true;
             // 
             // MediaBrowserBtn
             // 
@@ -473,6 +509,7 @@ namespace osu2ass
             this.GlobalOffsetTB.Name = "GlobalOffsetTB";
             this.GlobalOffsetTB.Size = new System.Drawing.Size(95, 26);
             this.GlobalOffsetTB.TabIndex = 15;
+            this.GlobalOffsetTB.Text = "0";
             // 
             // label9
             // 
@@ -517,6 +554,7 @@ namespace osu2ass
             this.EndOffsetTB.Name = "EndOffsetTB";
             this.EndOffsetTB.Size = new System.Drawing.Size(95, 26);
             this.EndOffsetTB.TabIndex = 15;
+            this.EndOffsetTB.Text = "0";
             // 
             // label8
             // 
@@ -545,6 +583,7 @@ namespace osu2ass
             this.StartOffsetTB.Name = "StartOffsetTB";
             this.StartOffsetTB.Size = new System.Drawing.Size(95, 26);
             this.StartOffsetTB.TabIndex = 12;
+            this.StartOffsetTB.Text = "0";
             // 
             // label6
             // 
@@ -761,11 +800,14 @@ namespace osu2ass
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox WidthTB;
         private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.CheckBox UseBackgroundRBtn;
+        private System.Windows.Forms.CheckBox UseBackgroundBtn;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Button StyleCodeBtn;
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.ComboBox StyleBox;
+        private System.Windows.Forms.Label SpeedLB;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.TextBox SpeedTB;
     }
 }
 

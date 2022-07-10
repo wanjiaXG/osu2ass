@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -15,18 +14,27 @@ namespace osu2ass
 {
     public partial class MainForm : Form
     {
-
-        private WebSocket wsClient;
+        private WebSocket WsClient;
 
         private readonly SynchronizationContext Context;
 
-        private Process process;
+        private Process GosuProcess;
 
         private string StyleCode;
 
-        private List<char> CharList = new List<char>();
+        private readonly List<char> SpCharList = new List<char>();
 
-        public static readonly StringBuilder GosumemoryLog = new StringBuilder();
+        public static readonly StringBuilder GosuLog = new StringBuilder();
+
+        public static readonly string DefaultStyleCode = "Style: Default,黑体,45,&H00FFFFFF,&H00F0B075,&H00C34F22,&H00000000,0,0,0,0,100,100,0,0,1,1.5,1.99999,2,11,11,50,1\r\n";
+
+        private readonly static string ApplicationBasePath = new FileInfo(Application.ExecutablePath).DirectoryName;
+
+        private readonly static string GosuBasePath = $"{ApplicationBasePath}/gosumemory/";
+
+        private readonly static string GosuConfigPath = $"{GosuBasePath}/config.ini";
+
+        private readonly static string GosuPath = $"{GosuBasePath}/gosumemory.exe";
 
         public MainForm()
         {
@@ -44,78 +52,88 @@ namespace osu2ass
 
         private void RunGosu()
         {
-            //Init Path
-            string ApplicationBasePath = new FileInfo(Application.ExecutablePath).DirectoryName;
-
-            string gosuBasePath = $"{ApplicationBasePath}/gosumemory/";
-
-            string gosuConfigPath = $"{gosuBasePath}/config.ini";
-
-            string gosuPath = $"{gosuBasePath}/gosumemory.exe";
-
-
-            if (!Directory.Exists(gosuBasePath))
+            try
             {
-                Directory.CreateDirectory(gosuBasePath);
-            }
 
-            if (!File.Exists(gosuPath))
-            {
-                File.WriteAllBytes(gosuPath, Resources.gosumemory);
-            }
-            if (!File.Exists(gosuConfigPath))
-            {
-                File.WriteAllText(gosuConfigPath, Resources.config);
-            }
-
-            if (process != null && !process.HasExited)
-            {
-                process.CloseMainWindow();
-                process = null;
-            }
-
-
-
-            //Read gosumemory config.ini
-            Ini ini = Ini.Parse(File.ReadAllText(gosuConfigPath));
-
-            //Execute gosumemory
-            process = new Process();
-            process.StartInfo.FileName = gosuPath;
-            process.StartInfo.CreateNoWindow = true;
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            process.StartInfo.RedirectStandardInput = true;
-            process.StartInfo.RedirectStandardOutput = true;
-            new Thread(()=>
-            {
-                byte[] buffer = new byte[2048];
-                while (!this.IsDisposed)
+                if (!Directory.Exists(GosuBasePath))
                 {
-                    try
-                    {
-                        int? length = process?.StandardOutput?.BaseStream?.Read(buffer, 0, buffer.Length);
-                        GosumemoryLog.Append(Encoding.Default.GetString(buffer, 0, (int)length));
-                    }
-                    catch
-                    {
-
-                    }
+                    Directory.CreateDirectory(GosuBasePath);
                 }
-            }).Start();
-            process.Start();
 
+                if (!File.Exists(GosuPath))
+                {
+                    File.WriteAllBytes(GosuPath, Resources.gosumemory);
+                }
 
-            //Read websocket url
-            string server = $"ws://{ini.GetValue<string>("Web", "serverip")}/ws";
+                if (!File.Exists(GosuConfigPath))
+                {
+                    File.WriteAllText(GosuConfigPath, Resources.config);
+                }
 
-            //Connect to gosumemory
-            
-            wsClient = new WebSocket(server);
-            wsClient.Log.File = null;
-            wsClient.OnMessage += OnMessage;
-            wsClient.OnClose += OnClose;
-            wsClient.Connect();
+                if (GosuProcess != null && !GosuProcess.HasExited)
+                {
+                    GosuProcess.CloseMainWindow();
+                    GosuProcess = null;
+                }
+
+                //Read gosumemory config.ini
+                Ini ini = Ini.Parse(File.ReadAllText(GosuConfigPath));
+
+                //Execute gosumemory
+                GosuProcess = new Process();
+                GosuProcess.StartInfo.FileName = GosuPath;
+                GosuProcess.StartInfo.CreateNoWindow = true;
+                GosuProcess.StartInfo.UseShellExecute = false;
+                GosuProcess.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                GosuProcess.StartInfo.RedirectStandardInput = true;
+                GosuProcess.StartInfo.RedirectStandardOutput = true;
+                new Thread(() =>
+                {
+                    byte[] buffer = new byte[2048];
+                    while (!this.IsDisposed)
+                    {
+                        try
+                        {
+                            int? length = GosuProcess?.StandardOutput?.BaseStream?.Read(buffer, 0, buffer.Length);
+                            GosuLog.Append(Encoding.Default.GetString(buffer, 0, (int)length));
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+                }).Start();
+                GosuProcess.Start();
+
+                //Read websocket url
+                string serverip = ini.GetValue<string>("Web", "serverip");
+
+                if (serverip.StartsWith("0.0.0.0"))
+                {
+                    serverip = serverip.Replace("0.0.0.0", "127.0.0.1");
+                }
+
+                string server = $"ws://{serverip}/ws";
+
+                
+
+                //Connect to gosumemory
+
+                WsClient = new WebSocket(server);
+                WsClient.Log.File = null;
+                WsClient.OnMessage += OnMessage;
+                WsClient.OnClose += OnClose;
+                WsClient.Connect();
+            }catch(Exception ex)
+            {
+                Context.Post((obj) => 
+                {
+                    if(obj is Exception e)
+                    {
+                        MessageBox.Show(e.Message);
+                    }
+                }, ex);
+            }
         }
 
         private void OnClose(object sender, CloseEventArgs e)
@@ -125,9 +143,10 @@ namespace osu2ass
             if (!IsDisposed)
             {
                 Thread.Sleep(1000);
-                wsClient.Connect();
+                WsClient.Connect();
             }
         }
+
 
         private GosumemoryData gosumemoryData;
 
@@ -158,88 +177,55 @@ namespace osu2ass
 
         private void ConvertBtn_Click(object sender, EventArgs e)
         {
-
-/*            string[] color = { "{\\c&cec74c&}",
-                            "{\\c&FFFFFF&}",
-                            "{\\c&6cedea&}",
-                            "{\\c&FFFFFF&}",
-                            "{\\c&456ee0&}",
-                            "{\\c&FFFFFF&}",
-                            "{\\c&6cedea&}",
-                            "{\\c&FFFFFF&}" };
-            int cindex = 0;*/
-
             try
             {
-                int width = 0;
-                int height = 0;
+                #region 参数校验
+
                 if (string.IsNullOrWhiteSpace(AssPathTB.Text))
                 {
                     throw new Exception("未选择ass保存路径");
                 }
 
-                if (int.TryParse(WidthTB.Text, out int w) && int.TryParse(HeightTB.Text, out int h))
-                {
-                    width = w;
-                    height = h;
-                }
-                else
+                if (!int.TryParse(WidthTB.Text, out int width) || !int.TryParse(HeightTB.Text, out int height))
                 {
                     throw new Exception("画布宽度值必须是整数值");
                 }
 
+                if (!float.TryParse(SpeedTB.Text, out float speed))
+                {
+                    throw new Exception("字幕速度不是数字，请填写正确的数值");
+                }
 
-                int GlobalStartOffset = 0;
-                int GlobalEndOffset = 0;
+                int startOffset = 0;
+                int endOffset = 0;
 
                 if (GlobalPage.Equals(tabControl1.SelectedTab))
                 {
-                    if (!string.IsNullOrWhiteSpace(GlobalOffsetTB.Text))
+                    if (!int.TryParse(GlobalOffsetTB.Text, out startOffset))
                     {
-                        if (int.TryParse(GlobalOffsetTB.Text, out int result))
-                        {
-                            GlobalStartOffset = GlobalEndOffset = result;
-                        }
-                        else
-                        {
-                            throw new Exception("偏移值必须是整数值");
-                        }
+                        throw new Exception("全局偏移值必须是整数值");
                     }
+                    endOffset = startOffset;
                 }
                 else
                 {
-                    if (!string.IsNullOrWhiteSpace(StartOffsetTB.Text))
+                    if (!int.TryParse(StartOffsetTB.Text, out startOffset) || !int.TryParse(EndOffsetTB.Text, out endOffset))
                     {
-                        if (int.TryParse(StartOffsetTB.Text, out int result))
-                        {
-                            GlobalStartOffset = result;
-                        }
-                        else
-                        {
-                            throw new Exception("偏移值必须是整数值");
-                        }
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(EndOffsetTB.Text))
-                    {
-                        if (int.TryParse(EndOffsetTB.Text, out int result))
-                        {
-                            GlobalEndOffset = result;
-                        }
-                        else
-                        {
-                            throw new Exception("偏移值必须是整数值");
-                        }
+                        throw new Exception("开始和结束的偏移值必须是整数值");
                     }
                 }
 
+                #endregion
+
                 StringBuilder ass = new StringBuilder();
+
+                //视频画布大小
                 ass.Append("[Script Info]\r\n");
                 ass.Append($"PlayResX: {width}\r\n");
                 ass.Append($"PlayResY: {height}\r\n");
 
 
-
+                //媒体文件
                 ass.Append("\r\n[Aegisub Project Garbage]\r\n");
 
                 if (!string.IsNullOrWhiteSpace(MediaNameTB.Text))
@@ -247,7 +233,7 @@ namespace osu2ass
                     ass.Append($"Audio File: {MediaNameTB.Text}\r\n");
                 }
 
-                if (UseBackgroundRBtn.Checked)
+                if (UseBackgroundBtn.Checked)
                 {
                     ass.Append($"Video File: ?dummy:30:40000:{width}:{height}:0:0:0:\r\n");
                 }
@@ -256,14 +242,17 @@ namespace osu2ass
                     ass.Append($"Video File: {MediaNameTB.Text}\r\n");
                 }
                 
+                //样式代码
                 ass.Append("\r\n[V4+ Styles]\r\n");
                 ass.Append("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\r\n");
                 ass.Append(StyleCode).Append("\r\n");
+                
+                //字幕主体
                 ass.Append("\r\n[Events]\r\n");
                 ass.Append("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\r\n");
 
 
-                List<int> offsets = GetOffsets();
+                List<int> times = GetTimes(speed);
 
                 List<List<StringBuilder>> lrcs = GetLrcs();
 
@@ -273,71 +262,32 @@ namespace osu2ass
                 foreach (var item in lrcs)
                 {
                     StringBuilder content = new StringBuilder();
-                    if (index >= offsets.Count) break;
-                    int StartOffset = offsets[index];
-                    int CurrentOffset = StartOffset;
+                    if (index >= times.Count) break;
+                    int startTime = times[index];
+
+                    int currentTime = startTime;
 
                     foreach (var c in item)
                     {
                         index++;
-                        if (index >= offsets.Count) break;
-                        content.Append("{\\kf" + (offsets[index] - CurrentOffset) / 10 + "}");
+                        if (index >= times.Count) break;
+                        content.Append("{\\kf" + (times[index] - currentTime) / 10 + "}");
 
                         content.Append(c);
-/*
-                        bool f = true;
-                        foreach(var cc in c.ToString().Trim().ToCharArray())
-                        {
-                            if(cc > 256)
-                            {
-                                f = false;
-                            }
-                        }
-                        if (f)
-                        {
-                            content.Append(color[cindex])
-                            .Append(c);
-                            cindex++;
-                            if (cindex >= color.Length)
-                            {
-                                cindex = 0;
-                            }
-                        }
-                        else
-                        {
-
-                            foreach (var cc in c.ToString().ToCharArray())
-                            {
-                                if (string.IsNullOrWhiteSpace(cc.ToString()))
-                                {
-                                    continue;
-                                }
-                                content.Append(color[cindex])
-                                .Append(cc);
-                                cindex++;
-                                if (cindex >= color.Length)
-                                {
-                                    cindex = 0;
-                                }
-                            }
-                        }*/
-
-
-
-
-                        CurrentOffset = offsets[index];
+                        currentTime = times[index];
                     }
 
                     if (!string.IsNullOrWhiteSpace(content.ToString()))
                     {
                         ass.Append("Dialogue: 0,");
-                        ass.Append(Offset2AssTime(StartOffset + GlobalStartOffset) + ",");
-                        ass.Append(Offset2AssTime(CurrentOffset + GlobalStartOffset) + $",{StyleBox.Text},,0,0,0,,");
+                        ass.Append(Offset2AssTime(startTime + startOffset) + ",");
+                        ass.Append(Offset2AssTime(currentTime + endOffset) + $",{StyleBox.Text},,0,0,0,,");
                         ass.Append(content);
                         ass.Append("\r\n");
                     }
                     index++;
                 }
+
                 AssTB.Text = ass.ToString();
                 File.WriteAllText(AssPathTB.Text, AssTB.Text);
             }
@@ -372,7 +322,7 @@ namespace osu2ass
             }
         }
 
-        private List<int> GetOffsets()
+        private List<int> GetTimes(float speed)
         {
             #region read Offset
 
@@ -406,7 +356,7 @@ namespace osu2ass
                     string[] vs = line.Split(',');
                     if (vs.Length >= 3)
                     {
-                        offset.Add(int.Parse(vs[2]));
+                        offset.Add((int)(int.Parse(vs[2]) / speed));
                     }
                     continue;
                 }
@@ -466,7 +416,7 @@ namespace osu2ass
 
         private bool CheckChar(char c)
         {
-            return CharList.Contains(c);
+            return SpCharList.Contains(c);
         }
 
         private string Offset2AssTime(int offset)
@@ -484,15 +434,13 @@ namespace osu2ass
             return $"{h:D2}:{m:D2}:{s:D2}.{ms / 10:D2}";
         }
 
-
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (process != null && !process.HasExited)
+            if (GosuProcess != null && !GosuProcess.HasExited)
             {
-                process.Kill();
+                GosuProcess.Kill();
             }
         }
-
 
         private void CharBtn_Click(object sender, EventArgs e)
         {
@@ -506,16 +454,15 @@ namespace osu2ass
             {
                 if (File.Exists(CharForm.CharPath))
                 {
-                    List<char> tmpList = new List<char>();
                     string content = File.ReadAllText(CharForm.CharPath);
-                    if (content != null)
+                    if (!string.IsNullOrWhiteSpace(content))
                     {
+                        SpCharList.Clear();
                         foreach (char c in content.ToCharArray())
                         {
-                            if (tmpList.Contains(c)) continue;
-                            tmpList.Add(c);
+                            if (SpCharList.Contains(c)) continue;
+                            SpCharList.Add(c);
                         }
-                        CharList = tmpList;
                     }
                 }
             }
@@ -551,9 +498,9 @@ namespace osu2ass
             new StyleForm().ShowDialog();
             UpdateStyleCode();
         }
+       
         private void UpdateStyleCode()
         {
-            string Code = "Style: Default,黑体,45,&H00FFFFFF,&H00F0B075,&H00C34F22,&H00000000,0,0,0,0,100,100,0,0,1,1.5,1.99999,2,11,11,50,1\r\n";
             try
             {
                 if (File.Exists(StyleForm.StylePath))
@@ -562,13 +509,13 @@ namespace osu2ass
                 }
                 else
                 {
-                    StyleCode = Code;
+                    StyleCode = DefaultStyleCode;
                 }
             }
             catch(Exception ex)
             {
                 MessageBox.Show(ex.Message);
-                StyleCode = Code;
+                StyleCode = DefaultStyleCode;
             }
 
             StyleBox.Items.Clear();
@@ -588,12 +535,13 @@ namespace osu2ass
                     }
                 }
             }
+
             StyleBox.SelectedIndex = 0;
         }
 
         private void GosuLogBtn_Click(object sender, EventArgs e)
         {
-            new GosuLogForm(GosumemoryLog).ShowDialog();
+            new GosuLogForm(GosuLog).ShowDialog();
         }
     }
 }

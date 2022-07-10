@@ -39,17 +39,18 @@ namespace osu2ass
             this.textBox1.Margin = new System.Windows.Forms.Padding(6, 5, 6, 5);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(403, 276);
+            this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.textBox1.Size = new System.Drawing.Size(784, 441);
             this.textBox1.TabIndex = 0;
             // 
             // StyleForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 21F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(403, 276);
+            this.ClientSize = new System.Drawing.Size(784, 441);
             this.Controls.Add(this.textBox1);
             this.Font = new System.Drawing.Font("宋体", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             this.Margin = new System.Windows.Forms.Padding(6, 5, 6, 5);
             this.Name = "StyleForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

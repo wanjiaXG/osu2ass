@@ -124,5 +124,8 @@
   <ItemGroup>
     <None Include="gosumemory.exe" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="CodeBackup\变色文字测试.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

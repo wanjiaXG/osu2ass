@@ -1,0 +1,190 @@
+﻿private void ConvertBtn_Click(object sender, EventArgs e)
+        {
+
+/*            string[] color = { "{\\c&cec74c&}",
+                            "{\\c&FFFFFF&}",
+                            "{\\c&6cedea&}",
+                            "{\\c&FFFFFF&}",
+                            "{\\c&456ee0&}",
+                            "{\\c&FFFFFF&}",
+                            "{\\c&6cedea&}",
+                            "{\\c&FFFFFF&}" };
+            int cindex = 0;*/
+
+            try
+            {
+                int width = 0;
+                int height = 0;
+                if (string.IsNullOrWhiteSpace(AssPathTB.Text))
+                {
+                    throw new Exception("未选择ass保存路径");
+                }
+
+                if (int.TryParse(WidthTB.Text, out int w) && int.TryParse(HeightTB.Text, out int h))
+                {
+                    width = w;
+                    height = h;
+                }
+                else
+                {
+                    throw new Exception("画布宽度值必须是整数值");
+                }
+
+
+                int GlobalStartOffset = 0;
+                int GlobalEndOffset = 0;
+
+                if (GlobalPage.Equals(tabControl1.SelectedTab))
+                {
+                    if (!string.IsNullOrWhiteSpace(GlobalOffsetTB.Text))
+                    {
+                        if (int.TryParse(GlobalOffsetTB.Text, out int result))
+                        {
+                            GlobalStartOffset = GlobalEndOffset = result;
+                        }
+                        else
+                        {
+                            throw new Exception("偏移值必须是整数值");
+                        }
+                    }
+                }
+                else
+                {
+                    if (!string.IsNullOrWhiteSpace(StartOffsetTB.Text))
+                    {
+                        if (int.TryParse(StartOffsetTB.Text, out int result))
+                        {
+                            GlobalStartOffset = result;
+                        }
+                        else
+                        {
+                            throw new Exception("偏移值必须是整数值");
+                        }
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(EndOffsetTB.Text))
+                    {
+                        if (int.TryParse(EndOffsetTB.Text, out int result))
+                        {
+                            GlobalEndOffset = result;
+                        }
+                        else
+                        {
+                            throw new Exception("偏移值必须是整数值");
+                        }
+                    }
+                }
+
+                StringBuilder ass = new StringBuilder();
+                ass.Append("[Script Info]\r\n");
+                ass.Append($"PlayResX: {width}\r\n");
+                ass.Append($"PlayResY: {height}\r\n");
+
+
+
+                ass.Append("\r\n[Aegisub Project Garbage]\r\n");
+
+                if (!string.IsNullOrWhiteSpace(MediaNameTB.Text))
+                {
+                    ass.Append($"Audio File: {MediaNameTB.Text}\r\n");
+                }
+
+                if (UseBackgroundRBtn.Checked)
+                {
+                    ass.Append($"Video File: ?dummy:30:40000:{width}:{height}:0:0:0:\r\n");
+                }
+                else if (!string.IsNullOrWhiteSpace(MediaNameTB.Text))
+                {
+                    ass.Append($"Video File: {MediaNameTB.Text}\r\n");
+                }
+                
+                ass.Append("\r\n[V4+ Styles]\r\n");
+                ass.Append("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\r\n");
+                ass.Append(StyleCode).Append("\r\n");
+                ass.Append("\r\n[Events]\r\n");
+                ass.Append("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\r\n");
+
+
+                List<int> offsets = GetOffsets();
+
+                List<List<StringBuilder>> lrcs = GetLrcs();
+
+                //Dialogue: 0,0:00:07.96,0:00:12.60,Default,,0,0,0,,PCゲーム「穢翼のユースティア」OP
+
+                int index = 0;
+                foreach (var item in lrcs)
+                {
+                    StringBuilder content = new StringBuilder();
+                    if (index >= offsets.Count) break;
+                    int StartOffset = offsets[index];
+                    int CurrentOffset = StartOffset;
+
+                    foreach (var c in item)
+                    {
+                        index++;
+                        if (index >= offsets.Count) break;
+                        content.Append("{\\kf" + (offsets[index] - CurrentOffset) / 10 + "}");
+
+                        content.Append(c);
+/*
+                        bool f = true;
+                        foreach(var cc in c.ToString().Trim().ToCharArray())
+                        {
+                            if(cc > 256)
+                            {
+                                f = false;
+                            }
+                        }
+                        if (f)
+                        {
+                            content.Append(color[cindex])
+                            .Append(c);
+                            cindex++;
+                            if (cindex >= color.Length)
+                            {
+                                cindex = 0;
+                            }
+                        }
+                        else
+                        {
+
+                            foreach (var cc in c.ToString().ToCharArray())
+                            {
+                                if (string.IsNullOrWhiteSpace(cc.ToString()))
+                                {
+                                    continue;
+                                }
+                                content.Append(color[cindex])
+                                .Append(cc);
+                                cindex++;
+                                if (cindex >= color.Length)
+                                {
+                                    cindex = 0;
+                                }
+                            }
+                        }*/
+
+
+
+
+                        CurrentOffset = offsets[index];
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(content.ToString()))
+                    {
+                        ass.Append("Dialogue: 0,");
+                        ass.Append(Offset2AssTime(StartOffset + GlobalStartOffset) + ",");
+                        ass.Append(Offset2AssTime(CurrentOffset + GlobalStartOffset) + $",{StyleBox.Text},,0,0,0,,");
+                        ass.Append(content);
+                        ass.Append("\r\n");
+                    }
+                    index++;
+                }
+                AssTB.Text = ass.ToString();
+                File.WriteAllText(AssPathTB.Text, AssTB.Text);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
