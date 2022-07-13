@@ -87,15 +87,19 @@ namespace osu2ass
                 GosuProcess.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 GosuProcess.StartInfo.RedirectStandardInput = true;
                 GosuProcess.StartInfo.RedirectStandardOutput = true;
+                GosuProcess.StartInfo.RedirectStandardError = true;
+                
                 new Thread(() =>
                 {
-                    byte[] buffer = new byte[2048];
                     while (!this.IsDisposed)
                     {
                         try
                         {
-                            int? length = GosuProcess?.StandardOutput?.BaseStream?.Read(buffer, 0, buffer.Length);
-                            GosuLog.Append(Encoding.Default.GetString(buffer, 0, (int)length));
+                            string tmp = GosuProcess?.StandardOutput?.ReadLine();
+                            lock (GosuLog)
+                            {
+                                GosuLog.AppendLine(tmp);
+                            }
                         }
                         catch
                         {
@@ -103,6 +107,26 @@ namespace osu2ass
                         }
                     }
                 }).Start();
+
+                new Thread(() =>
+                {
+                    while (!this.IsDisposed)
+                    {
+                        try
+                        {
+                            string tmp = GosuProcess?.StandardError?.ReadLine();
+                            lock (GosuLog)
+                            {
+                                GosuLog.AppendLine(tmp);
+                            }
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+                }).Start();
+
                 GosuProcess.Start();
 
                 //Read websocket url
@@ -554,7 +578,7 @@ namespace osu2ass
 
         private void GosuLogBtn_Click(object sender, EventArgs e)
         {
-            new GosuLogForm(GosuLog).ShowDialog();
+            new GosuLogForm(GosuLog).Show();
         }
     }
 }
